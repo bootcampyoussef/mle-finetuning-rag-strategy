@@ -15,14 +15,14 @@ as the fallback provider.
 flowchart LR
     A["01 - Strategy map"] --> B["02 - Data readiness"]
     B --> C["03 - RAG-only baseline"]
-    C --> D["04 - Fine-tuning-only baseline"]
+    C --> D["04 - Fine-tuning-style baseline"]
     D --> E["05 - Hybrid decision report"]
 ```
 
 - [01 - RAG vs fine-tuning strategy map](01-rag-vs-finetuning-strategy-map.ipynb): Build the mental model for parametric memory, retrieval memory, and hybrid systems.
 - [02 - Domain data and fine-tuning readiness](02-domain-data-and-finetuning-readiness.ipynb): Inspect what data is suitable for retrieval, supervised fine-tuning, and evaluation.
 - [03 - RAG-only baseline and failure modes](03-rag-only-baseline-and-failure-modes.ipynb): Build a transparent local RAG baseline and measure grounded-answer behavior.
-- [04 - Fine-tuning-only baseline and limits](04-finetuning-only-baseline-and-limits.ipynb): Use live style-conditioned prompts as a behavior-adaptation proxy and examine why they cannot replace fresh evidence.
+- [04 - Fine-tuning-style baseline and limits](04-finetuning-only-baseline-and-limits.ipynb): Use live style-conditioned prompts as a behavior-adaptation proxy and examine why they cannot replace fresh evidence.
 - [05 - Hybrid architecture decision report](05-hybrid-architecture-decision-report.ipynb): Combine the evidence into a strategy recommendation with cost, latency, and maintenance trade-offs.
 
 ## Repository Map
@@ -96,19 +96,28 @@ keys.
 ## What This Repository Does Not Fine-Tune
 
 This unit makes real LLM calls, but it does not run a real fine-tuning job. The
-later **Fine-Tuning Small Models Locally + Evaluation** unit covers actual local
-fine-tuning with tools such as [LoRA](https://arxiv.org/abs/2106.09685),
+preceding **Fine-Tuning Small Models Locally + Evaluation** unit covers actual
+local fine-tuning with tools such as
+[LoRA](https://arxiv.org/abs/2106.09685),
 [Hugging Face PEFT](https://huggingface.co/docs/peft/index), and
-[TRL SFTTrainer](https://huggingface.co/docs/trl/main/sft_trainer). Here, the
-fine-tuning-style notebooks use few-shot examples to approximate behavior
-adaptation so participants can compare RAG-only, behavior-adapted, and hybrid
-prompts on the same domain task.
+[TRL SFTTrainer](https://huggingface.co/docs/trl/main/sft_trainer). This repo
+assumes those mechanics are familiar and shifts the question to architecture
+choice: when should a team use RAG, fine-tuning, or a hybrid path? The
+fine-tuning-style notebooks use few-shot examples as a lightweight proxy for
+behavior adaptation so participants can compare RAG-only, behavior-adapted, and
+hybrid prompts on the same domain task.
+
+## Exercise Format
+
+The notebooks use small checkpoints throughout the learning path instead of one
+large exercise at the end. Concept checks use brief text, image, diagram, or
+output questions followed immediately by the answer or explanation.
 
 ## Learning Objectives
 
 By the end of this repository, you should be able to:
 
-- Compare RAG-only, fine-tuning-only, and hybrid architectures on a domain task.
+- Compare RAG-only, fine-tuning-style, and hybrid architectures on a domain task.
 - Explain which failure modes each strategy can and cannot address.
 - Inspect whether a dataset is suitable for retrieval, supervised fine-tuning, or evaluation.
 - Build provider-backed baselines that make strategy trade-offs measurable without a paid training job.
