@@ -37,8 +37,14 @@ mle-finetuning-rag-strategy/
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
+├── strategy_helpers.py
 └── 01-05-*.ipynb
 ```
+
+`strategy_helpers.py` keeps the shared fixtures, provider fallback, sparse
+retrieval baseline, and style-message conversion consistent across notebooks.
+The notebooks introduce those contracts once and then focus on the strategy
+comparison instead of repeating setup code.
 
 ## Environment
 
