@@ -60,7 +60,7 @@ def provider_config_from_env(provider_name: str) -> ProviderConfig | None:
     if provider_name == "mistral" and os.getenv("MISTRAL_API_KEY"):
         return ProviderConfig(
             provider="mistral",
-            model=os.getenv("MISTRAL_MODEL", "mistral-small-latest"),
+            model=os.getenv("MISTRAL_MODEL", "ministral-14b-latest"),
             base_url="https://api.mistral.ai/v1",
             api_key=os.getenv("MISTRAL_API_KEY"),
             dry_run=False,
