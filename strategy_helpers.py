@@ -1,17 +1,16 @@
 """Shared data, provider, and retrieval helpers for the strategy notebooks."""
 
-from collections import Counter
 import json
 import math
 import os
-from pathlib import Path
 import re
-from typing import Any
+from collections import Counter
+from pathlib import Path
+from typing import Any, Literal
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import APIStatusError, OpenAI, OpenAIError
 from pydantic import BaseModel
-
 
 load_dotenv(dotenv_path=Path(".env"), override=False)
 
@@ -23,6 +22,15 @@ DOCUMENTS: list[dict[str, Any]] = DATA["documents"]
 REQUESTS: list[dict[str, Any]] = DATA["support_requests"]
 STYLE_EXAMPLES: list[dict[str, str]] = DATA["style_examples"]
 SCENARIOS: list[dict[str, Any]] = DATA["strategy_scenarios"]
+
+ReplySource = Literal["live", "simulated", "fallback"]
+
+
+class ModelReply(BaseModel):
+    """Keep generated text and its execution source together."""
+
+    text: str
+    source: ReplySource
 
 
 class ProviderConfig(BaseModel):
@@ -92,13 +100,12 @@ def call_model(
     dry_response: str,
     temperature: float = 0.2,
     response_format: dict[str, str] | None = None,
-) -> str:
-    """Call the configured provider or return the supplied dry response."""
+) -> ModelReply:
+    """Return text labeled as live, simulated, or fallback after a provider error."""
 
     if CONFIG.dry_run or CONFIG.api_key is None:
-        return dry_response
+        return ModelReply(text=dry_response, source="simulated")
 
-    client = OpenAI(api_key=CONFIG.api_key, base_url=CONFIG.base_url)
     kwargs: dict[str, Any] = {
         "model": CONFIG.model,
         "messages": messages,
@@ -108,12 +115,26 @@ def call_model(
         kwargs["response_format"] = response_format
 
     try:
-        completion = client.chat.completions.create(**kwargs)
-        return completion.choices[0].message.content or ""
-    except Exception as error:
-        print(f"Live provider call failed: {error}")
+        with OpenAI(
+            api_key=CONFIG.api_key,
+            base_url=CONFIG.base_url,
+            timeout=30,
+            max_retries=0,
+        ) as client:
+            completion = client.chat.completions.create(**kwargs)
+        return ModelReply(
+            text=completion.choices[0].message.content or "", source="live"
+        )
+    except OpenAIError as error:
+        # Keep diagnostics useful without printing response bodies or credentials.
+        diagnostic = type(error).__name__
+        if isinstance(error, APIStatusError):
+            diagnostic += (
+                f" (HTTP {error.status_code}, code={error.code or 'unspecified'})"
+            )
+        print(f"Live provider call failed: {diagnostic}")
         print("Using the deterministic response for this lesson run.")
-        return dry_response
+        return ModelReply(text=dry_response, source="fallback")
 
 
 def style_messages(examples: list[dict[str, str]]) -> list[dict[str, str]]:

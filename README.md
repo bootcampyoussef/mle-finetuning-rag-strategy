@@ -7,9 +7,27 @@ real chat-completion calls through the
 [OpenAI Python client](https://github.com/openai/openai-python), with
 [Groq OpenAI compatibility](https://console.groq.com/docs/openai) as the
 primary provider and [Mistral chat completions](https://docs.mistral.ai/studio-api/conversations/chat-completion)
-as the fallback provider.
+as an alternative provider.
+
+## Learning Objectives
+
+By the end of this repository, you should be able to:
+
+- Compare RAG-only, fine-tuning-style, and hybrid architectures on a domain task.
+- Explain which failure modes each strategy can and cannot address.
+- Inspect whether a dataset is suitable for retrieval, supervised fine-tuning, or evaluation.
+- Build provider-backed baselines that make strategy trade-offs measurable without a paid training job.
+- Select and justify a strategy using cost, latency, freshness, auditability, and accuracy constraints.
 
 ## Learning Path
+
+| File / Folder | Description |
+|---|---|
+| [**01 - RAG vs Fine-Tuning Strategy Map**](01-rag-vs-finetuning-strategy-map.ipynb) | Compare parametric knowledge, retrieved evidence, and behavior adaptation. |
+| [**02 - Domain Data and Fine-Tuning Readiness**](02-domain-data-and-finetuning-readiness.ipynb) | Inspect retrieval, behavior-example, and evaluation data contracts. |
+| [**03 - RAG-Only Baseline and Failure Modes**](03-rag-only-baseline-and-failure-modes.ipynb) | Build a transparent retriever and inspect cited answers and abstention. |
+| [**04 - Fine-Tuning-Style Baseline and Limits**](04-finetuning-only-baseline-and-limits.ipynb) | Use few-shot style conditioning as a proxy, not a real fine-tuning run. |
+| [**05 - Hybrid Architecture Decision Report**](05-hybrid-architecture-decision-report.ipynb) | Compare strategy signals and justify the next experiment. |
 
 ```mermaid
 flowchart LR
@@ -19,85 +37,115 @@ flowchart LR
     D --> E["05 - Hybrid decision report"]
 ```
 
-- [01 - RAG vs fine-tuning strategy map](01-rag-vs-finetuning-strategy-map.ipynb): Build the mental model for parametric memory, retrieval memory, and hybrid systems.
-- [02 - Domain data and fine-tuning readiness](02-domain-data-and-finetuning-readiness.ipynb): Inspect what data is suitable for retrieval, supervised fine-tuning, and evaluation.
-- [03 - RAG-only baseline and failure modes](03-rag-only-baseline-and-failure-modes.ipynb): Build a transparent local RAG baseline and measure grounded-answer behavior.
-- [04 - Fine-tuning-style baseline and limits](04-finetuning-only-baseline-and-limits.ipynb): Use live style-conditioned prompts as a behavior-adaptation proxy and examine why they cannot replace fresh evidence.
-- [05 - Hybrid architecture decision report](05-hybrid-architecture-decision-report.ipynb): Combine the evidence into a strategy recommendation with cost, latency, and maintenance trade-offs.
+### Additional Folders and Files
 
-## Repository Map
+| File / Folder | Description |
+|---|---|
+| [**assets**](assets/) | Visual aids referenced in the notebooks. |
+| [**data**](data/) | Policy documents, support requests, style examples, and decision scenarios. |
+| [**strategy_helpers.py**](strategy_helpers.py) | Shared data, provider, and sparse retrieval helpers. |
+| [**.env.example**](.env.example) | Optional provider configuration template. |
+| [**pyproject.toml**](pyproject.toml) | Project configuration and dependencies. |
+| [**uv.lock**](uv.lock) | Dependency lock file. |
 
-```text
-mle-finetuning-rag-strategy/
-├── assets/
-├── data/
-│   └── strategy_cases.json
-├── .env.example
-├── .gitignore
-├── LICENSE
-├── README.md
-├── requirements.txt
-├── strategy_helpers.py
-└── 01-05-*.ipynb
-```
+## Setup
 
-`strategy_helpers.py` keeps the shared fixtures, provider fallback, sparse
-retrieval baseline, and style-message conversion consistent across notebooks.
-The notebooks introduce those contracts once and then focus on the strategy
-comparison instead of repeating setup code.
+> [!NOTE]
+> Throughout these steps, text in angle brackets like `<repo-name>` is a **placeholder**. Replace it, including the `< >` brackets, with your own value. For example, `cd <repo-name>` becomes `cd mle-finetuning-rag-strategy`.
 
-## Environment
+### 1. Create the Repository from the Template
 
-Please make sure you **use this repository as a template** and set up a new virtual environment. You can use the following commands:
+Click **Use this template** on GitHub.
 
-### macOS
+When creating the repository:
+
+- Set yourself as the **Owner**
+- Choose a repository name
+- Disable **Include all branches**
+- Click **Create repository**
+
+> [!IMPORTANT]
+> If you are working in pairs or groups, only **one person** should complete this step.
+
+---
+
+### 2. Add Collaborators (Pairs/Groups Only)
+
+If working with teammates:
+
+1. Open the repository on GitHub
+2. Go to **Settings → Collaborators**
+3. Add your teammates as collaborators
+4. Share the repository link with your team
+
+Teammates should accept the invitation before continuing.
+
+---
+
+### 3. Clone the Repository
+
+Copy the SSH URL from the **Code** button on GitHub, then run:
 
 ```bash
-pyenv local 3.11.3
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+git clone <copied-ssh-url>
+```
+
+The copied SSH URL will look like `git@github.com:<your-username>/<repo-name>.git`.
+
+---
+
+### 4. Move into the Project Folder and Install Dependencies
+
+The command below installs all dependencies and creates a virtual environment in `.venv/`.
+
+```bash
+cd <repo-name>
+uv sync
+```
+
+All five notebooks run locally without a model download or API key. Without credentials, provider outputs are explicitly simulated examples, not measurements of model quality. Each reply carries a `live`, `simulated`, or `fallback` source label.
+
+---
+
+### 5. Set Up Environment Variables (Optional)
+
+For live model calls, copy the example file and fill in your API key:
+
+```bash
 cp .env.example .env
 ```
 
-### Windows PowerShell
+Open `.env` and set `LLM_PROVIDER` to `groq` or `mistral`, then add the matching key:
 
-```powershell
-pyenv local 3.11.3
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-Copy-Item .env.example .env
-```
+- **Groq (primary):** Create a key at [console.groq.com/keys](https://console.groq.com/keys) and set `GROQ_API_KEY`.
+- **Mistral (alternative):** Create a key following the [Mistral API key documentation](https://docs.mistral.ai/admin/security-access/api-keys) and set `MISTRAL_API_KEY`.
 
-### Windows Git Bash
+`LLM_PROVIDER` selects the preferred provider. If its key is missing, the helper selects the other configured provider. `GROQ_MODEL` and `MISTRAL_MODEL` override model names.
+
+> [!CAUTION]
+> Never commit `.env`. It is git-ignored because environment files often hold secrets. Only `.env.example`, with placeholder or default values, belongs in the repository.
+
+---
+
+### 6. Open the Repository in VS Code
+
+> [!NOTE]
+> Make sure you open VS Code from the project root so it automatically detects the environment created by `uv sync`.
+
+Launch VS Code in the project root folder:
 
 ```bash
-pyenv local 3.11.3
-python -m venv .venv
-source .venv/Scripts/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-cp .env.example .env
+code .
 ```
 
-## Provider Setup
+Then open a notebook and select the Python environment created by `uv sync` as the kernel.
 
-The notebooks run in deterministic dry mode when no API key is configured. Dry
-mode keeps the notebooks runnable during review and shows the exact prompt flow
-without making provider calls.
+## API Usage Notes
 
-To run live calls, copy `.env.example` to `.env` and add at least one key:
-
-- `LLM_PROVIDER=groq` uses Groq first.
-- `GROQ_API_KEY` enables Groq calls through `https://api.groq.com/openai/v1`.
-- `MISTRAL_API_KEY` enables fallback calls through `https://api.mistral.ai/v1`.
-- `GROQ_MODEL` and `MISTRAL_MODEL` can override the default model names.
-
-Provider calls may incur costs or hit rate limits. Do not commit `.env` or API
-keys.
+- Without a configured key, `call_model` returns the supplied deterministic example. Provider failures remain visible and also return that example; do not treat fallback responses as live results.
+- Notebook 05 compares all three prompt conditions on six requests (18 answer calls plus one reviewer call for a complete live comparison). Simulated and fallback rows do not support a live architecture recommendation. The common rubric measures format, retrieval and citation checks, and concision, not semantic faithfulness or tone.
+- A provider selected at startup is used for the run. An API error does not automatically retry with the other provider.
+- Live calls may incur costs or hit rate limits. Check model availability and billing in the provider console, and restart the kernel after changing `.env`.
 
 ## What This Repository Does Not Fine-Tune
 
@@ -119,21 +167,11 @@ The notebooks use small checkpoints throughout the learning path instead of one
 large exercise at the end. Concept checks use brief text, image, diagram, or
 output questions followed immediately by the answer or explanation.
 
-## Learning Objectives
-
-By the end of this repository, you should be able to:
-
-- Compare RAG-only, fine-tuning-style, and hybrid architectures on a domain task.
-- Explain which failure modes each strategy can and cannot address.
-- Inspect whether a dataset is suitable for retrieval, supervised fine-tuning, or evaluation.
-- Build provider-backed baselines that make strategy trade-offs measurable without a paid training job.
-- Select and justify a strategy using cost, latency, freshness, auditability, and accuracy constraints.
-
 ## Further Reading
 
 - [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401): the original RAG paper combining parametric and non-parametric memory.
 - [Groq OpenAI compatibility](https://console.groq.com/docs/openai): provider setup used by the notebooks.
-- [Mistral API keys](https://docs.mistral.ai/admin/security-access/api-keys): key setup for the fallback provider.
+- [Mistral API keys](https://docs.mistral.ai/admin/security-access/api-keys): key setup for the alternative provider.
 - [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685): the paper behind a common parameter-efficient fine-tuning approach.
 - [Hugging Face PEFT](https://huggingface.co/docs/peft/index): practical adapter and parameter-efficient fine-tuning tooling.
 - [Hugging Face TRL SFTTrainer](https://huggingface.co/docs/trl/main/sft_trainer): supervised fine-tuning trainer documentation.
