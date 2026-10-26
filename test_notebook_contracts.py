@@ -78,7 +78,7 @@ class NotebookContracts(unittest.TestCase):
                     )
                     result = self.ns["rag_answer"]("Policy?")
                     self.assertEqual(
-                        result.status, "invalid-citations" if extra else "answered"
+                        result.status, "invalid_citations" if extra else "answered"
                     )
                     self.assertEqual(result.response_source, source)
                     score = self.ns["score_answer"](
@@ -108,7 +108,7 @@ class NotebookContracts(unittest.TestCase):
                 source="fallback",
             )
         )
-        self.assertEqual(self.ns["rag_answer"]("Policy?").status, "invalid-citations")
+        self.assertEqual(self.ns["rag_answer"]("Policy?").status, "invalid_citations")
 
     def test_provenance_survives_parsing_and_failures(self):
         valid = json.dumps(
