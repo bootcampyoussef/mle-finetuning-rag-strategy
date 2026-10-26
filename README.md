@@ -146,5 +146,5 @@ Then open a notebook and select the Python environment created by `uv sync` as t
 
 - Without a configured key, `call_model` returns the supplied deterministic example. Provider failures remain visible and also return that example. Do not treat fallback responses as live results.
 - Notebook 05 compares all three prompt conditions on six requests (18 answer calls plus one reviewer call for a complete live comparison). Simulated and fallback rows do not support a live architecture recommendation. The common rubric measures format, retrieval and citation checks, and concision, not semantic faithfulness or tone.
-- A provider selected at startup is used for the run. An API error does not automatically retry with the other provider.
+- A provider selected at startup is used for the run. Rate-limited calls and server errors are retried a few times with backoff before falling back; an API error does not switch to the other provider.
 - Live calls may incur costs or hit rate limits. Check model availability and billing in the provider console, and restart the kernel after changing `.env`.
