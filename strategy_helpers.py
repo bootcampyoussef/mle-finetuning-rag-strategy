@@ -21,7 +21,6 @@ with DATA_PATH.open(encoding="utf-8") as file:
 DOCUMENTS: list[dict[str, Any]] = DATA["documents"]
 REQUESTS: list[dict[str, Any]] = DATA["support_requests"]
 STYLE_EXAMPLES: list[dict[str, str]] = DATA["style_examples"]
-SCENARIOS: list[dict[str, Any]] = DATA["strategy_scenarios"]
 
 ReplySource = Literal["live", "simulated", "fallback"]
 

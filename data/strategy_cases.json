@@ -112,31 +112,5 @@
       "user": "I need more time.",
       "assistant": "Let's get your extension request ready. What is blocking you, what state is your repository in, and when could you realistically finish?"
     }
-  ],
-  "strategy_scenarios": [
-    {
-      "scenario": "Policy assistant with weekly policy updates",
-      "knowledge_volatility": 5,
-      "behavior_specialization": 2,
-      "labeled_examples": 2,
-      "latency_pressure": 2,
-      "auditability_required": 5
-    },
-    {
-      "scenario": "Support tone adapter for a stable product",
-      "knowledge_volatility": 1,
-      "behavior_specialization": 5,
-      "labeled_examples": 5,
-      "latency_pressure": 4,
-      "auditability_required": 2
-    },
-    {
-      "scenario": "Regulated assistant with custom tone and fresh rules",
-      "knowledge_volatility": 5,
-      "behavior_specialization": 4,
-      "labeled_examples": 4,
-      "latency_pressure": 3,
-      "auditability_required": 5
-    }
   ]
 }
