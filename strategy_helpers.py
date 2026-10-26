@@ -119,7 +119,7 @@ def call_model(
             api_key=CONFIG.api_key,
             base_url=CONFIG.base_url,
             timeout=30,
-            max_retries=0,
+            max_retries=3,
         ) as client:
             completion = client.chat.completions.create(**kwargs)
         return ModelReply(
