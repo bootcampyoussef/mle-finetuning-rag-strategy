@@ -17,7 +17,7 @@ By the end of this repository, you should be able to:
 - Explain which failure modes each strategy can and cannot address.
 - Inspect whether a dataset is suitable for retrieval, supervised fine-tuning, or evaluation.
 - Build provider-backed baselines that make strategy trade-offs measurable without a paid training job.
-- Select and justify a strategy using cost, latency, freshness, auditability, and accuracy constraints.
+- Justify a strategy recommendation with measured results and criteria such as freshness, auditability, and cost.
 
 ## Scope
 
@@ -44,7 +44,7 @@ compares RAG-only, behavior-adapted, and hybrid prompts on the same domain task.
 | File / Folder | Description |
 |---|---|
 | [**assets**](assets/) | Visual aids referenced in the repository. |
-| [**data**](data/) | Policy documents, support requests, style examples, and decision scenarios. |
+| [**data**](data/) | Policy documents, support requests, and style examples. |
 | [**strategy_helpers.py**](strategy_helpers.py) | Shared data, provider, and sparse retrieval helpers. |
 | [**.env.example**](.env.example) | Optional provider configuration template. |
 | [**pyproject.toml**](pyproject.toml) | Project configuration and dependencies. |
