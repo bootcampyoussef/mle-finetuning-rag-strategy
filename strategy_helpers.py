@@ -21,7 +21,6 @@ with DATA_PATH.open(encoding="utf-8") as file:
 DOCUMENTS: list[dict[str, Any]] = DATA["documents"]
 REQUESTS: list[dict[str, Any]] = DATA["support_requests"]
 STYLE_EXAMPLES: list[dict[str, str]] = DATA["style_examples"]
-SCENARIOS: list[dict[str, Any]] = DATA["strategy_scenarios"]
 
 ReplySource = Literal["live", "simulated", "fallback"]
 
@@ -119,7 +118,7 @@ def call_model(
             api_key=CONFIG.api_key,
             base_url=CONFIG.base_url,
             timeout=30,
-            max_retries=0,
+            max_retries=3,
         ) as client:
             completion = client.chat.completions.create(**kwargs)
         return ModelReply(

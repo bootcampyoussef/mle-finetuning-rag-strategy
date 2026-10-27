@@ -13,7 +13,7 @@ from pydantic import BaseModel, ValidationError
 
 
 def notebook_definitions(prefix, names, namespace):
-    """Load only the definitions under test, not notebook demonstrations."""
+    """Load requested definitions or fixtures, not notebook demonstrations."""
     path = next(Path(__file__).parent.glob(f"{prefix}-*.ipynb"))
     for cell in json.loads(path.read_text())["cells"]:
         if cell["cell_type"] != "code":
@@ -21,9 +21,17 @@ def notebook_definitions(prefix, names, namespace):
         nodes: list[ast.stmt] = [
             node
             for node in ast.parse("".join(cell["source"])).body
-            if isinstance(node, (ast.ClassDef, ast.FunctionDef)) and node.name in names
+            if (
+                isinstance(node, (ast.ClassDef, ast.FunctionDef)) and node.name in names
+            )
+            or (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id in names
+            )
         ]
-        exec(  # noqa: S102 - Execute only definitions from our checked-in notebooks.
+        exec(  # noqa: S102 - Execute trusted notebook definitions and fixtures only.
             compile(ast.Module(body=nodes, type_ignores=[]), str(path), "exec"),
             namespace,
         )
@@ -78,7 +86,7 @@ class NotebookContracts(unittest.TestCase):
                     )
                     result = self.ns["rag_answer"]("Policy?")
                     self.assertEqual(
-                        result.status, "invalid-citations" if extra else "answered"
+                        result.status, "invalid_citations" if extra else "answered"
                     )
                     self.assertEqual(result.response_source, source)
                     score = self.ns["score_answer"](
@@ -92,7 +100,7 @@ class NotebookContracts(unittest.TestCase):
                             answer=answer, source_ids=["refund-policy"]
                         ),
                     )
-                    self.assertEqual(score["citations_valid"], not extra)
+                    self.assertEqual(score["citation_ids_valid"], not extra)
                     self.assertEqual(score["expected_source_cited"], not extra)
 
     def test_abstention_rejects_undeclared_citations(self):
@@ -108,7 +116,7 @@ class NotebookContracts(unittest.TestCase):
                 source="fallback",
             )
         )
-        self.assertEqual(self.ns["rag_answer"]("Policy?").status, "invalid-citations")
+        self.assertEqual(self.ns["rag_answer"]("Policy?").status, "invalid_citations")
 
     def test_provenance_survives_parsing_and_failures(self):
         valid = json.dumps(
@@ -141,3 +149,71 @@ class NotebookContracts(unittest.TestCase):
         self.assertEqual(result.status, "abstained")
         self.assertEqual(result.response_source, "not_called")
         self.ns["call_model"].assert_not_called()
+
+    def test_id_consistency_is_not_sentence_coverage(self):
+        request = {
+            "request_id": "test",
+            "question": "Policy?",
+            "expected_doc": "refund-policy",
+        }
+        for parse_valid in (True, False):
+            with self.subTest(parse_valid=parse_valid):
+                result = self.ns["StrategyResult"](
+                    answer="Refunds are available [refund-policy]. No fee applies.",
+                    source_ids=["refund-policy"],
+                    parse_valid=parse_valid,
+                )
+                score = self.ns["score_answer"](request, "rag", result)
+                self.assertEqual(score["citation_ids_valid"], parse_valid)
+                self.assertNotIn("citations_valid", score)
+
+    def test_cited_examples_preserve_final_characters(self):
+        self.ns["EXAMPLE_SOURCES"] = {"refund": "refund-policy"}
+        notebook_definitions("05", {"cite_example"}, self.ns)
+        for reply, expected in [
+            ("Please contact support", "Please contact support [refund-policy]"),
+            ("Please contact support.", "Please contact support [refund-policy]."),
+            ("Need help?", "Need help [refund-policy]?"),
+            ("Thanks!", "Thanks [refund-policy]!"),
+        ]:
+            with self.subTest(reply=reply):
+                result = self.ns["cite_example"](
+                    {"intent": "refund", "assistant": reply}
+                )
+                self.assertEqual(result["assistant"], expected)
+
+    def test_report_fallback_distinguishes_missing_reviewer(self):
+        for complete in (True, False):
+            with self.subTest(live_comparison_complete=complete):
+                model = Mock(
+                    side_effect=lambda *args, **kwargs: SimpleNamespace(
+                        text=kwargs["dry_response"], source="fallback"
+                    )
+                )
+                namespace: dict[str, Any] = {
+                    "json": json,
+                    "BaseModel": BaseModel,
+                    "Literal": Literal,
+                    "ModelReply": SimpleNamespace,
+                    "live_comparison_complete": complete,
+                    "decision_messages": [],
+                    "call_model": model,
+                }
+                notebook_definitions(
+                    "05",
+                    {"DecisionReport", "dry_decision", "decision_reply"},
+                    namespace,
+                )
+                reply = namespace["decision_reply"]
+                report = namespace["DecisionReport"].model_validate_json(reply.text)
+                self.assertEqual(report.recommended_strategy, "not evaluated")
+                if complete:
+                    model.assert_called_once()
+                    self.assertEqual(reply.source, "fallback")
+                    self.assertIn("reviewer", report.rationale)
+                    self.assertNotIn("not measured", report.rationale)
+                    self.assertIn("manually", report.revisit_trigger)
+                else:
+                    model.assert_not_called()
+                    self.assertEqual(reply.source, "simulated")
+                    self.assertIn("not measured", report.rationale)

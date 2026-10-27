@@ -92,51 +92,25 @@
       "intent": "refund",
       "tone": "concise",
       "user": "I paid the same invoice twice.",
-      "assistant": "Ask for the invoice number and both payment references, then confirm that finance normally replies within three business days."
+      "assistant": "Please send the invoice number and both payment references. Finance normally replies within three business days."
     },
     {
       "intent": "technical",
       "tone": "operational",
       "user": "Our client gets HTTP 429.",
-      "assistant": "Explain the limit, ask the client to back off exponentially, and warn against immediate repeated retries."
+      "assistant": "Your client is over the rate limit. Retry with exponential backoff and avoid immediate repeated retries."
     },
     {
       "intent": "security",
       "tone": "careful_refusal",
       "user": "Can I send my passport to reset MFA?",
-      "assistant": "Refuse document sharing in chat, explain that identity verification must happen through support, and keep the tone calm."
+      "assistant": "I understand this is frustrating, but I can't accept identity documents in chat. Please contact support so they can verify your identity safely."
     },
     {
       "intent": "programme",
       "tone": "coaching",
       "user": "I need more time.",
-      "assistant": "Ask for the blocker, current repository state, and a realistic completion date before advising the extension request."
-    }
-  ],
-  "strategy_scenarios": [
-    {
-      "scenario": "Policy assistant with weekly policy updates",
-      "knowledge_volatility": 5,
-      "behavior_specialization": 2,
-      "labeled_examples": 2,
-      "latency_pressure": 2,
-      "auditability_required": 5
-    },
-    {
-      "scenario": "Support tone adapter for a stable product",
-      "knowledge_volatility": 1,
-      "behavior_specialization": 5,
-      "labeled_examples": 5,
-      "latency_pressure": 4,
-      "auditability_required": 2
-    },
-    {
-      "scenario": "Regulated assistant with custom tone and fresh rules",
-      "knowledge_volatility": 5,
-      "behavior_specialization": 4,
-      "labeled_examples": 4,
-      "latency_pressure": 3,
-      "auditability_required": 5
+      "assistant": "Let's get your extension request ready. What is blocking you, what state is your repository in, and when could you realistically finish?"
     }
   ]
 }
