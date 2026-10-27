@@ -46,6 +46,7 @@ compares RAG-only, behavior-adapted, and hybrid prompts on the same domain task.
 | [**assets**](assets/) | Visual aids referenced in the repository. |
 | [**data**](data/) | Policy documents, support requests, and style examples. |
 | [**strategy_helpers.py**](strategy_helpers.py) | Shared data, provider, and sparse retrieval helpers. |
+| [**test_notebook_contracts.py**](test_notebook_contracts.py) | Offline regression checks for maintainers. |
 | [**.env.example**](.env.example) | Optional provider configuration template. |
 | [**pyproject.toml**](pyproject.toml) | Project configuration and dependencies. |
 | [**uv.lock**](uv.lock) | Dependency lock file. |
@@ -145,6 +146,6 @@ Then open a notebook and select the Python environment created by `uv sync` as t
 ## API Usage Notes
 
 - Without a configured key, `call_model` returns the supplied deterministic example. Provider failures remain visible and also return that example. Do not treat fallback responses as live results.
-- Notebook 05 compares all three prompt conditions on six requests (18 answer calls plus one reviewer call for a complete live comparison). Simulated and fallback rows do not support a live architecture recommendation. The common rubric measures format, retrieval and citation checks, and concision, not semantic faithfulness or tone.
+- Notebook 05 compares all three prompt conditions on six requests (18 answer calls plus one reviewer call for a complete live comparison). Simulated and fallback rows do not support a live architecture recommendation. The common rubric measures format, retrieval, citation-ID consistency, and concision, not sentence-level citation coverage, semantic faithfulness, or tone.
 - A provider selected at startup is used for the run. Rate-limited calls and server errors are retried a few times with backoff before falling back; an API error does not switch to the other provider.
 - Live calls may incur costs or hit rate limits. Check model availability and billing in the provider console, and restart the kernel after changing `.env`.
